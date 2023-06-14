@@ -1,0 +1,7 @@
+._*
+src/assets/
+src/*.bak
+src/*.hex
+src/*.png
+src/*.zip
+src/*.json
