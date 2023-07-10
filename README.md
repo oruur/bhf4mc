@@ -10,12 +10,12 @@ https://github.com/hseelab/mchanfont/raw/main/BetterHanFont.zip
 
 If you have any questions, please e-mail to hoseok.ee (at) gmail.com
 
-![snapshot1](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot1.png?raw=true)
-![snapshot2](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot2.png?raw=true)
-![snapshot3](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot3.png?raw=true)
-![snapshot4](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot4.png?raw=true)
-![snapshot5](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot5.png?raw=true)
-![snapshot6](https://github.com/hseelab/mchanfont/blob/main/doc/snapshot6.png?raw=true)
+![snapshot1](https://github.com/hseelab/mchanfont/blob/main/images/snapshot1.png?raw=true)
+![snapshot2](https://github.com/hseelab/mchanfont/blob/main/images/snapshot2.png?raw=true)
+![snapshot3](https://github.com/hseelab/mchanfont/blob/main/images/snapshot3.png?raw=true)
+![snapshot4](https://github.com/hseelab/mchanfont/blob/main/images/snapshot4.png?raw=true)
+![snapshot5](https://github.com/hseelab/mchanfont/blob/main/images/snapshot5.png?raw=true)
+![snapshot6](https://github.com/hseelab/mchanfont/blob/main/images/snapshot6.png?raw=true)
 
 본 리소스팩에 포함된 한글 폰트는 기존의 어떤 데이터도 사용하지 않고 직접 처음부터 제작한 것입니다. 폰트를 제작하기 위해 사용된 모든 기본 자형 데이터와 조합을 위한 소스코드를 공개하니 필요한 분이 계시면 MIT 라이선스에 따라 유용하게 사용하시기 바랍니다. 폰트에 대한 자세한 내용은 다음 링크를 참고하세요.
 

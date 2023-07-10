@@ -1,22 +1,26 @@
+PATH=../util:/usr/bin
+
 all: ../BetterHanFont.zip
 
-hex: ../bin/hfutil hanbase-bold.bdf hanbase-regular.bdf
-	../bin/hfutil -i hanbase-bold.bdf -o hanbase-bold.hex
-	../bin/hfutil -i hanbase-regular.bdf -o hanbase-regular.hex
+hex: ../util/hfutil ../util/hfutil.py hanbase-bold.bdf hanbase-regular.bdf
+	hfutil -i hanbase-bold.bdf -o hanbase-bold.hex
+	hfutil -i hanbase-regular.bdf -o hanbase-regular.hex
 
-png: ../bin/hfutil hanbase-bold.bdf hanbase-regular.bdf
-	../bin/hfutil -y1 -i hanbase-bold.bdf -o ../doc/base-bold.png
-	../bin/hfutil -y1 -i hanbase-regular.bdf -o ../doc/base-regular.png
-	../bin/hfutil -y1 -s2 -c 2350 -i hanbase-bold.bdf -o ../doc/han2350-bold.png
-	../bin/hfutil -y1 -s1 -c 2350 -i hanbase-regular.bdf -o ../doc/han2350-regular.png
-	../bin/hfutil -x1 -s2 -c ../doc/example.txt -i hanbase-bold.bdf -o ../doc/example-bold.png
-	../bin/hfutil -s1 -w16 -c ../doc/example.txt -i hanbase-regular.bdf -o ../doc/example-regular.png
+images: ../util/hfutil ../util/hfutil.py hanbase-bold.bdf hanbase-regular.bdf
+	hfutil -y1 -i hanbase-bold.bdf -o ../images/base-bold.png
+	hfutil -y1 -i hanbase-regular.bdf -o ../images/base-regular.png
+	hfutil -y1 -s2 -c 1764 -i hanbase-bold.bdf -o ../images/han1764-bold.png
+	hfutil -y1 -s1 -c 1764 -i hanbase-regular.bdf -o ../images/han1764-regular.png
+	hfutil -y1 -s2 -c 2350 -i hanbase-bold.bdf -o ../images/han2350-bold.png
+	hfutil -y1 -s1 -c 2350 -i hanbase-regular.bdf -o ../images/han2350-regular.png
+	hfutil -x1 -s2 -c example.txt -i hanbase-bold.bdf -o ../images/example-bold.png
+	hfutil -s1 -w16 -c example.txt -i hanbase-regular.bdf -o ../images/example-regular.png
 
-hangul.png: ../bin/hfutil hanbase-bold.bdf
-	../bin/hfutil -s2 -c 11250 -i hanbase-bold.bdf -o hangul.png -j default.json
+hangul.png: ../util/hfutil ../util/hfutil.py hanbase-bold.bdf
+	hfutil -s2 -c 11250 -i hanbase-bold.bdf -o hangul.png -j default.json
 
-hangul.hex: ../bin/hfutil hanbase-regular.bdf
-	../bin/hfutil -s1 -c 11250 -i hanbase-regular.bdf -o hangul.hex -j unifont.json
+hangul.hex: ../util/hfutil ../util/hfutil.py hanbase-regular.bdf
+	hfutil -s1 -c 11250 -i hanbase-regular.bdf -o hangul.hex -j unifont.json
 
 ../BetterHanFontRegular.zip: pack.mcmeta hangul.hex
 	mkdir -p assets/minecraft/font/include

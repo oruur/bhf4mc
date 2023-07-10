@@ -1,7 +1,8 @@
+font/assets/
+font/*.bak
+font/*.hex
+font/*.png
+font/*.zip
+font/*.json
 ._*
-src/assets/
-src/*.bak
-src/*.hex
-src/*.png
-src/*.zip
-src/*.json
+__pycache__

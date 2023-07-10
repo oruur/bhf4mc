@@ -1,5 +1,3 @@
-#!/bin/env python
-
 import cv2, os, json, argparse
 import numpy as np
 
@@ -68,10 +66,10 @@ def composeChar(code, base, shift=0):
     return glyph
 
 
-def convertBase(method, base):
+def convertBase(base, method, shift=0):
     """
-    Convert base glyphs data to base glyphs with different grouping, glyphs data
-    of 2350 or entire Hangul jamos and syllables.
+    Convert base glyphs data to base with different grouping or glyphs of
+    entire Hangul jamos and syllables.
     """
     if method in ['gbc2gbv', 'gbv2gbc']:  # gbc: group by code, gbv: group by variation
         old = list(base.values())
@@ -84,16 +82,11 @@ def convertBase(method, base):
             s += size
         base = {code+0x100: new[code] for code in range(len(new))}
 
-    elif method == '2350':
-        hangul2350 = [(a, b) for a in range(0xB0, 0xC9) for b in range(0xA1, 0xFF)]
-        hangul2350 = [ord(bytes((a, b)).decode('EUC-KR')) for a, b in hangul2350]
-        base = {code: composeChar(code, base, args.shift) for code in hangul2350}
-
     elif method:
         hangul11250  = list(range(0x11A8, 0x11C3))
         hangul11250 += list(range(0x3131, 0x3164))
         hangul11250 += list(range(0xAC00, 0xD7A4))
-        base = {code: composeChar(code, base, args.shift) for code in hangul11250}
+        base = {code: composeChar(code, base, shift) for code in hangul11250}
 
     return base
 
@@ -211,44 +204,3 @@ def createJSON(jsonfile, output, glyphs, cols, rows):
                     provider['chars'][-1] += chr(glyphs[cols*i+j] if cols*i+j < len(glyphs) else 0)
 
         json.dump({'providers': [provider]}, f, indent='\t', separators=(',', ': '))
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-c', '--convert', type=str, help='gbc2gbv, gbv2gbc, 2350, 11250 or sample txt file')
-parser.add_argument('-a', '--ascii', type=str, help='input ascii unifont hex or bdf file')
-parser.add_argument('-i', '--infile', type=str, help='input 6/3/1 johab hangul base hex or bdf file')
-parser.add_argument('-o', '--outfile', type=str, help='output hex, bdf or png file')
-parser.add_argument('-j', '--jsonfile', type=str, help='output json file for Minecraft resource pack')
-parser.add_argument('-s', '--shift',
-        type=int, help='move final consonant SHIFT pixels to right when vowel has two vertical lines')
-parser.add_argument('-x', '--xshift',
-        type=int, help='move all glyphs XSHIFT pixels to right (+) or left (-)')
-parser.add_argument('-y', '--yshift',
-        type=int, help='move all glyphs YSHIFT pixels to top (+) or bottom (-)')
-parser.add_argument('-w', '--width',
-        type=int, help='set width of the font used to generate sample image (default: variable)')
-args = parser.parse_args()
-
-
-if args.outfile:
-    glyphs = importGlyphs(args.infile, xshift=args.xshift, yshift=args.yshift)
-    glyphs = convertBase(args.convert, glyphs)
-    glyphs = importGlyphs(args.ascii, glyphs)
-
-    cols, rows = (50,47) if args.convert == '2350' else (150,75) if args.convert else (16,16)
-
-    if args.outfile.endswith('.hex'):
-        exportHEX(args.outfile, glyphs)
-
-    if args.outfile.endswith('.bdf'):
-        exportBDF(args.outfile, glyphs)
-
-    if args.outfile.endswith('.png'):
-        if args.convert and os.path.isfile(args.convert):
-            with open(args.convert) as f:
-                exportPNG(args.outfile, glyphs, width=args.width, text=f.read())
-        else:
-            exportPNG(args.outfile, glyphs, cols, rows, rgba=bool(args.jsonfile))
-
-    if args.jsonfile:
-        createJSON(args.jsonfile, args.outfile, list(glyphs.keys()), cols, rows)

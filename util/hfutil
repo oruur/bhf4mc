@@ -1,0 +1,58 @@
+#!/bin/env python
+
+from hfutil import *
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--convert', type=str, help='gbc2gbv, gbv2gbc, 1764, 2350, or sample txt file')
+    parser.add_argument('-a', '--ascii', type=str, help='input ascii unifont hex or bdf file')
+    parser.add_argument('-i', '--infile', type=str, help='input 6/3/1 johab hangul base hex or bdf file')
+    parser.add_argument('-o', '--outfile', type=str, help='output hex, bdf or png file')
+    parser.add_argument('-j', '--jsonfile', type=str, help='output json file for Minecraft resource pack')
+    parser.add_argument('-s', '--shift',
+            type=int, help='move final consonant SHIFT pixels to right when vowel has two vertical lines')
+    parser.add_argument('-x', '--xshift',
+            type=int, help='move all glyphs XSHIFT pixels to right (+) or left (-)')
+    parser.add_argument('-y', '--yshift',
+            type=int, help='move all glyphs YSHIFT pixels to top (+) or bottom (-)')
+    parser.add_argument('-w', '--width',
+            type=int, help='set width of the font used to generate sample image (default: variable)')
+    args = parser.parse_args()
+
+
+    if args.outfile:
+        glyphs = importGlyphs(args.infile, xshift=args.xshift, yshift=args.yshift)
+        glyphs = convertBase(glyphs, args.convert, args.shift)
+        glyphs = importGlyphs(args.ascii, glyphs)
+
+        cols, rows = (150,75) if args.convert else (16,16)
+
+        if args.outfile.endswith('.hex'):
+            exportHEX(args.outfile, glyphs)
+
+        if args.outfile.endswith('.bdf'):
+            exportBDF(args.outfile, glyphs)
+
+        if args.outfile.endswith('.png'):
+            if args.convert == '1764':
+                text1 = [''.join([chr(i) for i in range(j, 0xD7A3, 588)]) for j in range(ord('가'), ord('까'), 28)]
+                text2 = [''.join([chr(i) for i in range(j, 0xD7A3, 588)]) for j in range(ord('간'), ord('깍'), 28)]
+                text3 = [''.join([chr(i) for i in range(j, 0xD7A3, 588)]) for j in range(ord('갈'), ord('깔'), 28)]
+                text4 = [''.join([chr(i) for i in range(j, j+27)]) for j in range(ord('락'), ord('막'), 28)]
+                text  = [' '.join(t) for t in zip(text1, text4)]
+                text += [' '.join(t) for t in zip(text2, text3)]
+                exportPNG(args.outfile, glyphs, width=16, text='\n'.join(text))
+
+            elif args.convert == '2350':
+                text = [bytes((a,b)).decode('EUC-KR') for a in range(0xB0, 0xC9) for b in range(0xA1, 0xFF)]
+                text = '\n'.join([''.join(text[i:i+50]) for i in range(0, len(text), 50)])
+                exportPNG(args.outfile, glyphs, width=16, text=text)
+
+            elif args.convert and os.path.isfile(args.convert):
+                with open(args.convert) as f:
+                    exportPNG(args.outfile, glyphs, width=args.width, text=f.read())
+            else:
+                exportPNG(args.outfile, glyphs, cols, rows, rgba=bool(args.jsonfile))
+
+        if args.jsonfile:
+            createJSON(args.jsonfile, args.outfile, list(glyphs.keys()), cols, rows)
