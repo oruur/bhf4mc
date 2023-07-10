@@ -71,24 +71,23 @@ def convertBase(base, method, shift=0):
     Convert base glyphs data to base with different grouping or glyphs of
     entire Hangul jamos and syllables.
     """
-    if method in ['gbc2gbv', 'gbv2gbc']:  # gbc: group by code, gbv: group by variation
+    if not method or len(base) > 256:
+        return base
+
+    elif method in ['gbc2gbv', 'gbv2gbc']:  # gbc: group by code, gbv: group by variation
         old = list(base.values())
         new = old[:]
-        table = [(52,19,6),(53,19,6),(54,19,6),(55,19,6),(56,19,6),(57,19,6),(166,21,3),(167,21,3),(168,21,3)]
+        table = [(52,19,6),(54,19,6),(53,19,6),(55,19,6),(57,19,6),(56,19,6),(166,21,3),(168,21,3),(167,21,3)]
         s = 52
         for start, size, step in table:
             if method == 'gbc2gbv': new[s:s+size] = old[start:start+size*step:step]
             if method == 'gbv2gbc': new[start:start+size*step:step] = old[s:s+size]
             s += size
-        base = {code+0x100: new[code] for code in range(len(new))}
+        return {code+0x100: new[code] for code in range(len(new))}
 
-    elif method:
-        hangul11250  = list(range(0x11A8, 0x11C3))
-        hangul11250 += list(range(0x3131, 0x3164))
-        hangul11250 += list(range(0xAC00, 0xD7A4))
-        base = {code: composeChar(code, base, shift) for code in hangul11250}
-
-    return base
+    else:
+        codes = list(range(0x11A8, 0x11C3)) + list(range(0x3131, 0x3164)) + list(range(0xAC00, 0xD7A4))
+        return {code: composeChar(code, base, shift if shift else 0) for code in codes}
 
 
 def exportHEX(filename, glyphs):
