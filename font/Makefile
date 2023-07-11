@@ -17,9 +17,9 @@ images: ../util/hfutil ../util/hfutil.py hanbase-bold.bdf hanbase-short.bdf hanb
 	hfutil -y1 -s2 -c 2350 -i hanbase-bold.bdf -o ../images/han2350-bold.png
 	hfutil -y1 -s1 -c 2350 -i hanbase-short.bdf -o ../images/han2350-short.png
 	hfutil -y1 -s1 -c 2350 -i hanbase-regular.bdf -o ../images/han2350-regular.png
-	hfutil -x1 -s2 -c example.txt -i hanbase-bold.bdf -o ../images/example-bold.png
-	hfutil -s1 -w16 -c example.txt -i hanbase-short.bdf -o ../images/example-short.png
-	hfutil -s1 -w16 -c example.txt -i hanbase-regular.bdf -o ../images/example-regular.png
+	hfutil -x1 -s2 -w-1 -c example.txt -i hanbase-bold.bdf -o ../images/example-bold.png
+	hfutil -s1 -c example.txt -i hanbase-short.bdf -o ../images/example-short.png
+	hfutil -s1 -c example.txt -i hanbase-regular.bdf -o ../images/example-regular.png
 
 hangul.png: ../util/hfutil ../util/hfutil.py hanbase-bold.bdf
 	hfutil -s2 -c 11250 -i hanbase-bold.bdf -o hangul.png -j default.json
