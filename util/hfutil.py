@@ -2,16 +2,16 @@ import cv2, os, json
 import numpy as np
 
 
-class HFUtil:
-    def __init__(self, filename, shift=0, xshift=0, yshift=0, width=16):
-        self.data = {}
-        self.shift = shift
+class HFUtil(dict):
+    def __init__(self, filename=None, width=16, xshift=0, yshift=0, shift=1):
         self.width = width
-        self.read(filename, shift, xshift, yshift)
-        self.range = [(0x1100, 0x1113), (0x1161, 0x1176), (0x11A8, 0x11C3), (0x3131, 0x3164), (0xAC00, 0xD7A4)]
+        self.shift = shift
+        self.hcodes = [(0x1100, 0x1113), (0x1161, 0x1176), (0x11A8, 0x11C3), (0x3131, 0x3164), (0xAC00, 0xD7A4)]
+        if filename and os.path.isfile(filename):
+            self.read(filename, xshift, yshift)
 
 
-    def read(self, filename, shift=0, xshift=0, yshift=0, range=(0, 0xFFFF)):
+    def read(self, filename, xshift=0, yshift=0, range=(0, 0xFFFF)):
         """
         Import glyphs in unifont hex or bdf format and convert it to an array of
         large integers.
@@ -34,7 +34,7 @@ class HFUtil:
                     if line.startswith('ENDCHAR') or line[4:5] == ':':
                         if shift > 0: glyph = f'{int(glyph,16)>> shift:0{len(glyph)}X}'
                         if shift < 0: glyph = f'{int(glyph,16)<<-shift:0{len(glyph)}X}'
-                        if range[0] <= code < range[1]: self.data.setdefault(code, glyph)
+                        if range[0] <= code < range[1]: self.setdefault(code, glyph)
 
 
     def compose_syllable(self, code):
@@ -42,35 +42,35 @@ class HFUtil:
         Compose a glyph of a Hangul char in Unicode plane 0 using the base glyphs.
         """
         # Hangul Jamo
-        if   self.range[0][0] <= code < self.range[0][1]: return self.data[code-self.range[0][0]+0xF134]
-        elif self.range[1][0] <= code < self.range[1][1]: return self.data[code-self.range[1][0]+0xF1A6]
-        elif self.range[2][0] <= code < self.range[2][1]: return self.data[code-self.range[2][0]+0xF1E5]
+        if   self.hcodes[0][0] <= code < self.hcodes[0][1]: return self[code-self.hcodes[0][0]+0xF134]
+        elif self.hcodes[1][0] <= code < self.hcodes[1][1]: return self[code-self.hcodes[1][0]+0xF1A6]
+        elif self.hcodes[2][0] <= code < self.hcodes[2][1]: return self[code-self.hcodes[2][0]+0xF1E5]
 
         # Hangul Compatibility Jamo
-        elif self.range[3][0] <= code < self.range[3][1]: return self.data[code-self.range[3][0]+0xF101]
+        elif self.hcodes[3][0] <= code < self.hcodes[3][1]: return self[code-self.hcodes[3][0]+0xF101]
 
         # Hangul Syllables
-        elif self.range[4][0] <= code < self.range[4][1]:
-            c = code - self.range[4][0]
+        elif self.hcodes[4][0] <= code < self.hcodes[4][1]:
+            c = code - self.hcodes[4][0]
             initial, medial, final = c//28//21, c//28%21, c%28
 
             # Select initial consonant
             if medial in [9, 10, 11, 14, 15, 16, 19]:   initial += 19*1 # ㅘ,ㅙ,ㅚ,ㅝ,ㅞ,ㅟ,ㅢ
             if medial in [8, 12, 13, 17, 18]:           initial += 19*2 # ㅗ,ㅛ,ㅜ,ㅠ,ㅡ
             if medial in [13, 14, 15, 16, 17] or final: initial += 19*3 # ㅜ,ㅝ,ㅞ,ㅟ,ㅠ
-            glyph = int(self.data[0xF134+initial], 16)
+            glyph = int(self[0xF134+initial], 16)
 
             # Select and overlay medial vowel
             if final == 4: medial += 21*1 # ㄴ
             elif final:    medial += 21*2
-            glyph |= int(self.data[0xF1A6+medial], 16)
+            glyph |= int(self[0xF1A6+medial], 16)
 
             # Select and overlay final consonant
             if final:
                 if medial%21 in [1, 3, 5, 7, 10, 15]: # ㅐ,ㅒ,ㅔ,ㅖ,ㅙ,ㅞ
-                    glyph |= int(self.data[0xF1E4+final], 16) >> self.shift
+                    glyph |= int(self[0xF1E4+final], 16) >> self.shift
                 else:
-                    glyph |= int(self.data[0xF1E4+final], 16)
+                    glyph |= int(self[0xF1E4+final], 16)
 
         return f'{glyph:064X}'
 
@@ -86,15 +86,15 @@ class HFUtil:
         for m, n in table:
             for i in n:
                 for j in range(m):
-                    if gbv+j in self.data:
-                        self.data[gbc+i+j*len(n)] = self.data[gbv+j]
-                    elif gbc+i+j*len(n) in self.data:
-                        self.data[gbv+j] = self.data[gbc+i+j*len(n)]
+                    if gbv+j in self:
+                        self[gbc+i+j*len(n)] = self[gbv+j]
+                    elif gbc+i+j*len(n) in self:
+                        self[gbv+j] = self[gbc+i+j*len(n)]
                 gbv += m
             gbc += m*len(n)
 
-        for start, stop in self.range:
-            for code in range(start, stop): self.data[code] = self.compose_syllable(code)
+        for start, stop in self.hcodes:
+            for code in range(start, stop): self[code] = self.compose_syllable(code)
 
 
     def export_hex(self, filename, text=[]):
@@ -102,11 +102,11 @@ class HFUtil:
         Export glyphs data to unifont hex file.
         """
         self.read(filename)
-        codes = [ord(i) for j in text for i in j] if text else self.data.keys()
+        codes = [ord(i) for j in text for i in j] if text else self.keys()
 
         with open(filename, 'w') as f:
             for c in sorted(codes):
-                f.write(f'{c:04X}:{self.data.get(c,0)}\n')
+                f.write(f'{c:04X}:{self.get(c,0)}\n')
 
 
     def export_bdf(self, filename, text=[]):
@@ -114,15 +114,15 @@ class HFUtil:
         Export glyphs data to bdf font file.
         """
         self.read(filename)
-        codes = [ord(i) for j in text for i in j] if text else self.data.keys()
+        codes = [ord(i) for j in text for i in j] if text else self.keys()
 
         with open(filename, 'w') as f:
             f.write('STARTFONT 2.1\nFONT Font\nSIZE 16 75 75\nFONTBOUNDINGBOX 16 16 0 -2\n')
             f.write('STARTPROPERTIES 5\nPIXEL_SIZE 16\nPOINT_SIZE 160\nSPACING "C"\n')
-            f.write(f'FONT_ASCENT 14\nFONT_DESCENT 2\nENDPROPERTIES\nCHARS {len(self.data)}\n')
+            f.write(f'FONT_ASCENT 14\nFONT_DESCENT 2\nENDPROPERTIES\nCHARS {len(self)}\n')
 
             for c in sorted(codes):
-                glyph = self.data.get(c, 0)
+                glyph = self.get(c, 0)
                 w = len(glyph)//16
                 f.write(f'STARTCHAR U+{c:04X}\nENCODING {c}')
                 f.write(f'\nSWIDTH {240*w} 0\nDWIDTH {4*w} 0\nBBX {4*w} 16 0 -2\nBITMAP\n')
@@ -136,14 +136,18 @@ class HFUtil:
         """
         Return bitmap of a char in numpy array.
         """
-        glyph = self.data.get(code, f'{0:032b}')
+        glyph = self.get(code, f'{0:032b}')
         w = len(glyph)//4
         bitmap = np.array([int(b) for b in f'{int(glyph,16):0{16*w}b}'], dtype=np.uint8).reshape(16, w)
 
         if 8 <= self.width < 16:
             bitmap = bitmap[:,:(self.width+1//2) if code < 0x100 else self.width]
+
         elif self.width < 8 and code != 32 and code != 256: # variable width
-            bitmap = np.pad(bitmap[:,:1+np.nonzero(np.any(bitmap, axis=0))[0][-1]], ((0, 0), (0, self.width)))
+            nonzero = np.sum(bitmap, axis=0)
+            nonzero[1:] += nonzero[:-1] // 8
+            nonzero = np.nonzero(nonzero)[0]
+            bitmap = np.pad(bitmap[:,nonzero[0]:1+nonzero[-1]], ((0, 0), (0, self.width)))
 
         return bitmap
 
@@ -153,16 +157,16 @@ class HFUtil:
         Export glyphs data to png file with text.
         """
         if not text:
-            text = [chr(c) for c in self.data.keys()]
+            text = [chr(c) for c in self.keys()]
             text = [''.join(text[i:i+16]) for i in range(0, len(text), 16)]
 
         plane = []
         for line in text:
             if (line):
-                line = [self.bitmap(ord(char)) for char in line.rstrip()]
+                line = [self.bitmap(ord(char)) for char in line.strip('\n')]
                 plane.append(np.concatenate(line, axis=1))
             else:
-                plane.append(np.zeros((16, 1), dtype=np.uint8))
+                plane.append(np.zeros((8, 1), dtype=np.uint8))
 
         width = max([len(p[0]) for p in plane])
         for i in range(len(plane)):
@@ -192,9 +196,8 @@ class HFUtil:
             if datafile.endswith('.hex'):
                 provider = {'type': 'unihex', 'hex_file': f'minecraft:font/{datafile[:-4]}.zip'}
                 provider['size_overrides'] = []
-                for i, j in self.range[2:]:
-                    size_overrides = {'from': chr(i), 'to': chr(j), 'left': 0, 'right': self.width-1}
-                    provider['size_overrides'].append(size_overrides)
+                for i, j in self.hcodes[2:]:
+                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 0, 'right': 14})
             else:
                 provider = {'type': 'bitmap', 'file': f'minecraft:font/{datafile[:-4]}.png', 'ascent': 8}
                 provider['chars'] = []

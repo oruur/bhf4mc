@@ -1,77 +1,74 @@
 #!/bin/env python
 
 import argparse, os
+import numpy as np
 from hfutil import HFUtil
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-t', '--text', type=str,
-        help='gbc256, gbv256, han1764, han2350, han11172, han11250 or sample txt file')
-parser.add_argument('-a', '--ascii', type=str,
-        help='input ascii unifont hex or bdf file')
-parser.add_argument('-i', '--infile', type=str,
-        help='input 6/3/1 johab hangul base hex or bdf file')
-parser.add_argument('-o', '--outfile', type=str,
-        help='output hex, bdf or png file')
-parser.add_argument('-j', '--jsonfile', type=str,
-        help='output json file for Minecraft resource pack')
-parser.add_argument('-s', '--shift', type=int, default=1,
-        help='move final consonant SHIFT pixels to right when vowel has two vertical lines')
-parser.add_argument('-x', '--xshift', type=int, default=0,
+parser.add_argument('INPUT', type=str,
+        help='input BDF or HEX file with 6/3/1 johab hangul base glyphs')
+parser.add_argument('OUTPUT', type=str,
+        help='output BDF, HEX or PNG file')
+parser.add_argument('-a', dest='ASCII', type=str,
+        help='input BDF or HEX file with ascii glyphs')
+parser.add_argument('-c', dest='CHARS', type=str,
+        help='[gbc256|gbv256|han1764|han2350|han11172|han11250] or TXT file')
+parser.add_argument('-j', dest='JSON', type=str,
+        help='output JSON file for minecraft resource pack')
+parser.add_argument('-w', dest='WIDTH', type=int, default=16,
+        help='width of glyphs used to generate sample image (default: 16)')
+parser.add_argument('-x', dest='XSHIFT', type=int, default=0,
         help='move all glyphs XSHIFT pixels to right (+) or left (-)')
-parser.add_argument('-y', '--yshift', type=int, default=0,
+parser.add_argument('-y', dest='YSHIFT', type=int, default=0,
         help='move all glyphs YSHIFT pixels to top (+) or bottom (-)')
-parser.add_argument('-w', '--width', type=int, default=16,
-        help='set width of the font used to generate sample image (default: variable)')
+parser.add_argument('-s', dest='SHIFT', type=int, default=1,
+        help='move final consonat SHIFT pixels for vowels with double vertical strokes')
 args = parser.parse_args()
 
 
-if not args.infile or not args.outfile:
-    parser.print_help()
-    exit()
+glyphs = HFUtil(args.INPUT, xshift=args.XSHIFT, yshift=args.YSHIFT, width=args.WIDTH, shift=args.SHIFT)
 
-glyphs = HFUtil(args.infile, shift=args.shift, xshift=args.xshift, yshift=args.yshift, width=args.width)
-
-if (args.text):
+if (args.CHARS):
     glyphs.convert()
 
-if (args.ascii):
-    glyphs.read(args.ascii, range=(0x20, 0x7F))
+if (args.ASCII):
+    glyphs.read(args.ASCII, range=(0x20, 0x7F))
 
-if not args.text:
-    glyphs.export(args.outfile)
+if not args.CHARS:
+    glyphs.export(args.OUTPUT)
 
-elif args.text == 'gbc256':
+elif args.CHARS == 'gbc256':
     text = [''.join([chr(i) for i in range(j, j+0x10)]) for j in range(0xF000, 0xF100, 0x10)]
-    glyphs.export(args.outfile, text)
+    glyphs.export(args.OUTPUT, text)
 
-elif args.text == 'gbv256':
+elif args.CHARS == 'gbv256':
     text = [''.join([chr(i) for i in range(j, j+0x10)]) for j in range(0xF100, 0xF200, 0x10)]
-    glyphs.export(args.outfile, text)
+    glyphs.export(args.OUTPUT, text)
 
-elif args.text == 'han1764':
+elif args.CHARS == 'han1764':
     text1 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('가'), ord('까'), 28)]
     text2 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('간'), ord('깍'), 28)]
     text3 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('갈'), ord('깔'), 28)]
     text4 = [''.join([chr(i) for i in range(j, j+27)]) for j in range(ord('락'), ord('막'), 28)]
-    text = [' '.join(t) for t in zip(text1, text4)] + [' '.join(t) for t in zip(text2, text3)]
-    glyphs.export(args.outfile, text)
+    text = [' '.join(t) for t in zip(text1, text2, text3)] + [''] + text4
+    glyphs.export(args.OUTPUT, text)
 
-elif args.text == 'han2350':
+elif args.CHARS == 'han2350':
     text = [bytes((a,b)).decode('EUC-KR') for a in range(0xB0, 0xC9) for b in range(0xA1, 0xFF)]
     text = [''.join(text[i:i+50]) for i in range(0, len(text), 50)]
-    glyphs.export(args.outfile, text, rgba=args.jsonfile)
+    glyphs.export(args.OUTPUT, text, rgba=args.JSON)
 
-elif args.text in ['han11172', 'han11250']:
+elif args.CHARS in ['han11172', 'han11250']:
     text = []
-    for i in [4] if args.text == '11172' else [2, 3, 4]:
-        text += [chr(j) for j in range(glyphs.range[i][0], glyphs.range[i][1])]
+    for i in [4] if args.CHARS == '11172' else [2, 3, 4]:
+        text += [chr(j) for j in range(glyphs.hcodes[i][0], glyphs.hcodes[i][1])]
     text = [''.join(text[i:i+150]) for i in range(0, len(text), 150)]
-    glyphs.export(args.outfile, text, rgba=args.jsonfile)
+    glyphs.export(args.OUTPUT, text, rgba=args.JSON)
 
-elif os.path.isfile(args.text):
-    with open(args.text) as f:
-        glyphs.export(args.outfile, f.readlines(), 4)
+elif os.path.isfile(args.CHARS):
+    with open(args.CHARS) as f:
+        glyphs.export(args.OUTPUT, f.readlines(), 4)
 
-if args.jsonfile:
-    glyphs.json(args.jsonfile, args.outfile, text)
+if args.JSON:
+    glyphs.json(args.JSON, args.OUTPUT, text)
