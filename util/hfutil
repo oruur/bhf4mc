@@ -13,7 +13,7 @@ parser.add_argument('OUTPUT', type=str,
 parser.add_argument('-a', dest='ASCII', type=str,
         help='input BDF or HEX file with ascii glyphs')
 parser.add_argument('-c', dest='CHARS', type=str,
-        help='[gbc256|gbv256|han1764|han2350|han11172|han11250] or TXT file')
+        help='[basegbc|basegbv|han1764|han2350|han11172|han11250] or TXT file')
 parser.add_argument('-j', dest='JSON', type=str,
         help='output JSON file for minecraft resource pack')
 parser.add_argument('-w', dest='WIDTH', type=int, default=16,
@@ -29,20 +29,20 @@ args = parser.parse_args()
 
 glyphs = HFUtil(args.INPUT, xshift=args.XSHIFT, yshift=args.YSHIFT, width=args.WIDTH, shift=args.SHIFT)
 
-if (args.CHARS):
-    glyphs.convert()
-
 if (args.ASCII):
     glyphs.read(args.ASCII, range=(0x20, 0x7F))
+
+if args.CHARS:
+    glyphs.rearrange_base()
 
 if not args.CHARS:
     glyphs.export(args.OUTPUT)
 
-elif args.CHARS == 'gbc256':
+elif args.CHARS == 'basegbc':
     text = [''.join([chr(i) for i in range(j, j+0x10)]) for j in range(0xF000, 0xF100, 0x10)]
     glyphs.export(args.OUTPUT, text)
 
-elif args.CHARS == 'gbv256':
+elif args.CHARS == 'basegbv':
     text = [''.join([chr(i) for i in range(j, j+0x10)]) for j in range(0xF100, 0xF200, 0x10)]
     glyphs.export(args.OUTPUT, text)
 
@@ -52,7 +52,7 @@ elif args.CHARS == 'han1764':
     text3 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('갈'), ord('깔'), 28)]
     text4 = [''.join([chr(i) for i in range(j, j+27)]) for j in range(ord('락'), ord('막'), 28)]
     text = [' '.join(t) for t in zip(text1, text2, text3)] + [''] + text4
-    glyphs.export(args.OUTPUT, text)
+    glyphs.export(args.OUTPUT, text, 2)
 
 elif args.CHARS == 'han2350':
     text = [bytes((a,b)).decode('EUC-KR') for a in range(0xB0, 0xC9) for b in range(0xA1, 0xFF)]
@@ -64,6 +64,12 @@ elif args.CHARS in ['han11172', 'han11250']:
     for i in [4] if args.CHARS == '11172' else [2, 3, 4]:
         text += [chr(j) for j in range(glyphs.hcodes[i][0], glyphs.hcodes[i][1])]
     text = [''.join(text[i:i+150]) for i in range(0, len(text), 150)]
+    glyphs.export(args.OUTPUT, text, rgba=args.JSON)
+
+elif args.CHARS == 'full':
+    text = ''.join(sorted(chr(c) for c in glyphs.keys() if c <= 0xE000))
+    for i in range(5):
+        text += ''.join([chr(j) for j in range(glyphs.hcodes[i][0], glyphs.hcodes[i][1])])
     glyphs.export(args.OUTPUT, text, rgba=args.JSON)
 
 elif os.path.isfile(args.CHARS):

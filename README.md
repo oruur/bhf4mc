@@ -10,9 +10,12 @@ download the resource pack, click link below.
  * [두꺼운 글씨 버전 다운로드](https://github.com/hseelab/mchanfont/raw/main/BoldHanFont.zip)
 
 통합 버전을 설치하는 경우 유니코드 글꼴 강제 사용 옵션을 끄면 두꺼운 글꼴이,
-옵션을 켜면 얇은 글꼴이 적용됩니다. 통합 버전의 두꺼운 글씨에서 발광 표지판의
-배경이 깨지는 것이 싫은 분은 두꺼운 글씨 버전을 설치한 다음 유니코드 글꼴 강제
-사용 옵션을 끄고 사용하세요.
+옵션을 켜면 얇은 글꼴이 적용됩니다.
+
+매끄러운 영문 폰트를 원하는 분이나 발광 표지판의 배경이 깨지는 것이 싫은 분은
+두꺼운 글씨 버전을 설치하세요. 두꺼운 글씨 버전을 설치하는 경우 유니코드 글꼴
+강제 사용 옵션을 끄면 디폴트 영문 폰트가, 옵션을 켜면 매끄러운 영문 폰트가
+적용됩니다.
 
 If you have any questions, please e-mail to hoseok.ee (at) gmail.com
 

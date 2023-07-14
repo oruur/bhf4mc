@@ -13,8 +13,7 @@ class HFUtil(dict):
 
     def read(self, filename, xshift=0, yshift=0, range=(0, 0xFFFF)):
         """
-        Import glyphs in unifont hex or bdf format and convert it to an array of
-        large integers.
+        Read glyphs in unifont hex or bdf file and convert it to a dictionary.
         """
         shift = 0
         if xshift: shift += xshift
@@ -37,7 +36,26 @@ class HFUtil(dict):
                         if range[0] <= code < range[1]: self.setdefault(code, glyph)
 
 
-    def compose_syllable(self, code):
+    def rearrange_base(self):
+        """
+        Rearrange base in group by code to group by variation or vice versa.
+        """
+        gbc = 0xF000
+        gbv = 0xF100
+        table = [(52, [0]), (19, [0, 2, 1, 3, 5, 4]), (21, [0, 2, 1]), (27, [0])]
+
+        for m, n in table:
+            for i in n:
+                for j in range(m):
+                    if gbv+j in self:
+                        self[gbc+i+j*len(n)] = self[gbv+j]
+                    elif gbc+i+j*len(n) in self:
+                        self[gbv+j] = self[gbc+i+j*len(n)]
+                gbv += m
+            gbc += m*len(n)
+
+
+    def compose_syllable(self, code, default):
         """
         Compose a glyph of a Hangul char in Unicode plane 0 using the base glyphs.
         """
@@ -72,29 +90,20 @@ class HFUtil(dict):
                 else:
                     glyph |= int(self[0xF1E4+final], 16)
 
-        return f'{glyph:064X}'
+            return f'{glyph:064X}'
+
+        else:
+            return default
 
 
-    def convert(self):
+    def get(self, code, default=32*'0'):
         """
-        Convert base glyphs data to entire Hangul jamos and syllables.
+        Return a glyph of a char with code.
         """
-        gbc = 0xF000
-        gbv = 0xF100
-        table = [(52, [0]), (19, [0, 2, 1, 3, 5, 4]), (21, [0, 2, 1]), (27, [0])]
-
-        for m, n in table:
-            for i in n:
-                for j in range(m):
-                    if gbv+j in self:
-                        self[gbc+i+j*len(n)] = self[gbv+j]
-                    elif gbc+i+j*len(n) in self:
-                        self[gbv+j] = self[gbc+i+j*len(n)]
-                gbv += m
-            gbc += m*len(n)
-
-        for start, stop in self.hcodes:
-            for code in range(start, stop): self[code] = self.compose_syllable(code)
+        if code in self:
+            return self[code]
+        else:
+            return self.compose_syllable(code, default)
 
 
     def export_hex(self, filename, text=[]):
@@ -105,8 +114,8 @@ class HFUtil(dict):
         codes = [ord(i) for j in text for i in j] if text else self.keys()
 
         with open(filename, 'w') as f:
-            for c in sorted(codes):
-                f.write(f'{c:04X}:{self.get(c,0)}\n')
+            for code in sorted(codes):
+                f.write(f'{code:04X}:{self.get(code)}\n')
 
 
     def export_bdf(self, filename, text=[]):
@@ -121,10 +130,10 @@ class HFUtil(dict):
             f.write('STARTPROPERTIES 5\nPIXEL_SIZE 16\nPOINT_SIZE 160\nSPACING "C"\n')
             f.write(f'FONT_ASCENT 14\nFONT_DESCENT 2\nENDPROPERTIES\nCHARS {len(self)}\n')
 
-            for c in sorted(codes):
-                glyph = self.get(c, 0)
+            for code in sorted(codes):
+                glyph = self.get(code)
                 w = len(glyph)//16
-                f.write(f'STARTCHAR U+{c:04X}\nENCODING {c}')
+                f.write(f'STARTCHAR U+{code:04X}\nENCODING {code}')
                 f.write(f'\nSWIDTH {240*w} 0\nDWIDTH {4*w} 0\nBBX {4*w} 16 0 -2\nBITMAP\n')
                 f.write('\n'.join([f'{glyph}'[i:i+4] for i in range(0, 16*w, w)]))
                 f.write('\nENDCHAR\n')
@@ -136,16 +145,16 @@ class HFUtil(dict):
         """
         Return bitmap of a char in numpy array.
         """
-        glyph = self.get(code, f'{0:032b}')
+        glyph = self.get(code)
         w = len(glyph)//4
         bitmap = np.array([int(b) for b in f'{int(glyph,16):0{16*w}b}'], dtype=np.uint8).reshape(16, w)
 
         if 8 <= self.width < 16:
             bitmap = bitmap[:,:(self.width+1//2) if code < 0x100 else self.width]
 
-        elif self.width < 8 and code != 32 and code != 256: # variable width
+        elif self.width < 8 and code != 32: # variable width
             nonzero = np.sum(bitmap, axis=0)
-            nonzero[1:] += nonzero[:-1] // 8
+            nonzero[1:] += nonzero[:-1] // 9
             nonzero = np.nonzero(nonzero)[0]
             bitmap = np.pad(bitmap[:,nonzero[0]:1+nonzero[-1]], ((0, 0), (0, self.width)))
 
@@ -154,7 +163,7 @@ class HFUtil(dict):
 
     def export_png(self, filename, text=[], linespace=0, rgba=False):
         """
-        Export glyphs data to png file with text.
+        Generate png image with sample text using glyphs data.
         """
         if not text:
             text = [chr(c) for c in self.keys()]
@@ -170,7 +179,7 @@ class HFUtil(dict):
 
         width = max([len(p[0]) for p in plane])
         for i in range(len(plane)):
-            plane[i] = np.pad(plane[i], ((linespace//2, (linespace+1)//2), (0, width-len(plane[i][0]))))
+            plane[i] = np.pad(plane[i], (((linespace+1)//2, linespace//2), (0, width-len(plane[i][0]))))
 
         plane = np.concatenate(plane)
         if rgba:
@@ -193,16 +202,16 @@ class HFUtil(dict):
         Create JSON file for Minecraft font resource pack.
         """
         with open(jsonfile, 'w') as f:
-            if datafile.endswith('.hex'):
-                provider = {'type': 'unihex', 'hex_file': f'minecraft:font/{datafile[:-4]}.zip'}
-                provider['size_overrides'] = []
-                for i, j in self.hcodes[2:]:
-                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 0, 'right': 14})
-            else:
-                provider = {'type': 'bitmap', 'file': f'minecraft:font/{datafile[:-4]}.png', 'ascent': 8}
+            if datafile.endswith('.png'):
+                provider = {'type': 'bitmap', 'file': f'minecraft:font/{datafile}', 'ascent': 7}
                 provider['chars'] = []
                 for line in text:
                     if (line):
                         provider['chars'].append(line.strip())
+            else:
+                provider = {'type': 'unihex', 'hex_file': f'minecraft:font/{datafile[:-4]}.zip'}
+                provider['size_overrides'] = []
+                for i, j in self.hcodes:
+                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 0, 'right': 14})
 
             json.dump({'providers': [provider]}, f, indent='\t', separators=(',', ': '))
