@@ -36,7 +36,7 @@ class HFUtil(dict):
                         if range[0] <= code < range[1]: self.setdefault(code, glyph)
 
 
-    def rearrange_base(self):
+    def rearange_base(self):
         """
         Rearrange base in group by code to group by variation or vice versa.
         """
@@ -212,6 +212,6 @@ class HFUtil(dict):
                 provider = {'type': 'unihex', 'hex_file': f'minecraft:font/{datafile[:-4]}.zip'}
                 provider['size_overrides'] = []
                 for i, j in self.hcodes:
-                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 0, 'right': 14})
+                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 1, 'right': 15})
 
             json.dump({'providers': [provider]}, f, indent='\t', separators=(',', ': '))

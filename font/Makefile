@@ -24,7 +24,7 @@ images: Makefile base-bold.bdf base-short.bdf base-regular.bdf ../util/hfutil ..
 BoldHanFont.zip: Makefile base-bold.bdf pack.mcmeta ../util/hfutil ../util/hfutil.py
 	mkdir -p assets/minecraft/font/include
 	rm -f hangul.hex hangul.png assets/minecraft/font/hangul.zip
-	hfutil -c full base-bold.bdf hangul.hex -j unifont.json
+	hfutil -y-1 -c full base-bold.bdf hangul.hex -j unifont.json
 	cp unifont.json assets/minecraft/font/include/
 	zip -r assets/minecraft/font/hangul.zip hangul.hex
 	zip -r BoldHanFont.zip pack.mcmeta
@@ -35,9 +35,9 @@ BetterHanFont.zip: Makefile base-bold.bdf base-regular.bdf pack.mcmeta ../util/h
 	mkdir -p assets/minecraft/font/include
 	mkdir -p assets/minecraft/textures/font
 	rm -f hangul.hex hangul.png assets/minecraft/font/hangul.zip
-	hfutil -c han11250 base-bold.bdf hangul.png -j default.json
+	hfutil -x-1 -y-1 -c han11250 base-bold.bdf hangul.png -j default.json
 	hfutil -c han11250 base-regular.bdf hangul.hex -j unifont.json
-	cp default.json unifont.json assets/minecraft/font/include/
+	cp *.json assets/minecraft/font/include/
 	cp hangul.png assets/minecraft/textures/font/
 	zip -r assets/minecraft/font/hangul.zip hangul.hex
 	zip -r BetterHanFont.zip pack.mcmeta

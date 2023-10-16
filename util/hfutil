@@ -33,7 +33,7 @@ if (args.ASCII):
     glyphs.read(args.ASCII, range=(0x20, 0x7F))
 
 if args.CHARS:
-    glyphs.rearrange_base()
+    glyphs.rearange_base()
 
 if not args.CHARS:
     glyphs.export(args.OUTPUT)
