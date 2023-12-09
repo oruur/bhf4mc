@@ -6,7 +6,7 @@ class HFUtil(dict):
     def __init__(self, filename=None, width=16, xshift=0, yshift=0, shift=1):
         self.width = width
         self.shift = shift
-        self.hcodes = [(0x1100, 0x1113), (0x1161, 0x1176), (0x11A8, 0x11C3), (0x3131, 0x3164), (0xAC00, 0xD7A4)]
+        self.range = [(0x1100, 0x1113), (0x1161, 0x1176), (0x11A8, 0x11C3), (0x3131, 0x3164), (0xAC00, 0xD7A4)]
         if filename and os.path.isfile(filename):
             self.read(filename, xshift, yshift)
 
@@ -55,55 +55,45 @@ class HFUtil(dict):
             gbc += m*len(n)
 
 
-    def compose_syllable(self, code, default):
+    def compose_syllable(self, code):
         """
-        Compose a glyph of a Hangul char in Unicode plane 0 using the base glyphs.
+        Compose a glyph of a Hangul syllable using base glyphs.
         """
-        # Hangul Jamo
-        if   self.hcodes[0][0] <= code < self.hcodes[0][1]: return self[code-self.hcodes[0][0]+0xF134]
-        elif self.hcodes[1][0] <= code < self.hcodes[1][1]: return self[code-self.hcodes[1][0]+0xF1A6]
-        elif self.hcodes[2][0] <= code < self.hcodes[2][1]: return self[code-self.hcodes[2][0]+0xF1E5]
+        c = code - self.range[4][0]
+        initial, medial, final = c//28//21, c//28%21, c%28
 
-        # Hangul Compatibility Jamo
-        elif self.hcodes[3][0] <= code < self.hcodes[3][1]: return self[code-self.hcodes[3][0]+0xF101]
+        # Select initial consonant
+        if medial in [9, 10, 11, 14, 15, 16, 19]:   initial += 19*1 # ㅘ,ㅙ,ㅚ,ㅝ,ㅞ,ㅟ,ㅢ
+        if medial in [8, 12, 13, 17, 18]:           initial += 19*2 # ㅗ,ㅛ,ㅜ,ㅠ,ㅡ
+        if medial in [13, 14, 15, 16, 17] or final: initial += 19*3 # ㅜ,ㅝ,ㅞ,ㅟ,ㅠ
+        glyph = int(self[0xF134+initial], 16)
 
-        # Hangul Syllables
-        elif self.hcodes[4][0] <= code < self.hcodes[4][1]:
-            c = code - self.hcodes[4][0]
-            initial, medial, final = c//28//21, c//28%21, c%28
+        # Select and overlay medial vowel
+        if final == 4: medial += 21*1 # ㄴ
+        elif final:    medial += 21*2
+        glyph |= int(self[0xF1A6+medial], 16)
 
-            # Select initial consonant
-            if medial in [9, 10, 11, 14, 15, 16, 19]:   initial += 19*1 # ㅘ,ㅙ,ㅚ,ㅝ,ㅞ,ㅟ,ㅢ
-            if medial in [8, 12, 13, 17, 18]:           initial += 19*2 # ㅗ,ㅛ,ㅜ,ㅠ,ㅡ
-            if medial in [13, 14, 15, 16, 17] or final: initial += 19*3 # ㅜ,ㅝ,ㅞ,ㅟ,ㅠ
-            glyph = int(self[0xF134+initial], 16)
+        # Select and overlay final consonant
+        if final:
+            if medial%21 in [1, 3, 5, 7, 10, 15]: # ㅐ,ㅒ,ㅔ,ㅖ,ㅙ,ㅞ
+                glyph |= int(self[0xF1E4+final], 16) >> self.shift
+            else:
+                glyph |= int(self[0xF1E4+final], 16)
 
-            # Select and overlay medial vowel
-            if final == 4: medial += 21*1 # ㄴ
-            elif final:    medial += 21*2
-            glyph |= int(self[0xF1A6+medial], 16)
-
-            # Select and overlay final consonant
-            if final:
-                if medial%21 in [1, 3, 5, 7, 10, 15]: # ㅐ,ㅒ,ㅔ,ㅖ,ㅙ,ㅞ
-                    glyph |= int(self[0xF1E4+final], 16) >> self.shift
-                else:
-                    glyph |= int(self[0xF1E4+final], 16)
-
-            return f'{glyph:064X}'
-
-        else:
-            return default
+        return f'{glyph:064X}'
 
 
     def get(self, code, default=32*'0'):
         """
         Return a glyph of a char with code.
         """
-        if code in self:
-            return self[code]
-        else:
-            return self.compose_syllable(code, default)
+        if code in self: return self[code]
+        elif self.range[0][0] <= code < self.range[0][1]: return self[code-self.range[0][0]+0xF15A]
+        elif self.range[1][0] <= code < self.range[1][1]: return self[code-self.range[1][0]+0xF1A6]
+        elif self.range[2][0] <= code < self.range[2][1]: return self[code-self.range[2][0]+0xF1E5]
+        elif self.range[3][0] <= code < self.range[3][1]: return self[code-self.range[3][0]+0xF101]
+        elif self.range[4][0] <= code < self.range[4][1]: return self.compose_syllable(code)
+        else: return default
 
 
     def export_hex(self, filename, text=[]):
@@ -211,7 +201,7 @@ class HFUtil(dict):
             else:
                 provider = {'type': 'unihex', 'hex_file': f'minecraft:font/{datafile[:-4]}.zip'}
                 provider['size_overrides'] = []
-                for i, j in self.hcodes:
-                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j), 'left': 1, 'right': 15})
+                for i, j in self.range:
+                    provider['size_overrides'].append({'from': chr(i), 'to': chr(j-1), 'left': 1, 'right': 15})
 
             json.dump({'providers': [provider]}, f, indent='\t', separators=(',', ': '))
