@@ -5,7 +5,7 @@ import sys, json
 with open('pack.mcmeta', 'w') as f:
     pack = {'pack': {
             'pack_format': int(sys.argv[1]),
-            'description': '더 잘 보이는 한글 폰트 by Ee'
+            'description': '더 잘 보이는 한글 폰트 by OrUUr'
             }}
 
     json.dump(pack, f, indent='  ', separators=(',', ': '), ensure_ascii=False)
