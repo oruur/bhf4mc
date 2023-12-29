@@ -49,8 +49,8 @@ elif args.CHARS == 'basegbv':
 elif args.CHARS == 'han1764':
     text1 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('가'), ord('까'), 28)]
     text2 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('간'), ord('깍'), 28)]
-    text3 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('갈'), ord('깔'), 28)]
-    text4 = [''.join([chr(i) for i in range(j, j+27)]) for j in range(ord('락'), ord('막'), 28)]
+    text3 = [''.join([chr(i) for i in range(j, ord('힣'), 588)]) for j in range(ord('강'), ord('깡'), 28)]
+    text4 = [''.join([chr(i) for i in range(j, j+27)]) for j in range(ord('악'), ord('작'), 28)]
     text = [' '.join(t) for t in zip(text1, text2, text3)] + [''] + text4
     glyphs.export(args.OUTPUT, text, 2)
 
