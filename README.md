@@ -6,12 +6,14 @@
 Minecraft 1.20.x resource pack for better-looking Hangeul (Korean) fonts. To
 download the resource pack, click link below.
 
- * [BetterHanFont-1.20.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.zip) (1.20-1.20.1)
+ * [BetterHanFont-1.20.1.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.1.zip) (1.20-1.20.1)
  * [BetterHanFont-1.20.2.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.2.zip) (1.20.2)
- * [BetterHanFont-1.20.3.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.3.zip) (1.20.3-1.20.4)
- * [BolderHanFont-1.20.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.zip) (1.20-1.20.1)
+ * [BetterHanFont-1.20.4.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.4.zip) (1.20.3-1.20.4)
+ * [BetterHanFont-1.20.6.zip](https://github.com/oruur/bhf4mc/raw/master/BetterHanFont-1.20.6.zip) (1.20.5-1.20.6)
+ * [BolderHanFont-1.20.1.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.1.zip) (1.20-1.20.1)
  * [BolderHanFont-1.20.2.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.2.zip) (1.20.2)
- * [BolderHanFont-1.20.3.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.3.zip) (1.20.3-1.20.4)
+ * [BolderHanFont-1.20.4.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.4.zip) (1.20.3-1.20.4)
+ * [BolderHanFont-1.20.6.zip](https://github.com/oruur/bhf4mc/raw/master/BolderHanFont-1.20.6.zip) (1.20.5-1.20.6)
 
 두꺼운 글씨와 얇은 글씨를 모두 확인하고 싶은 분은 BetterHanFont-1.20.x.zip
 버전을 설치하세요. 유니코드 글꼴 강제 사용 옵션을 끄면 두꺼운 한글 폰트가,
