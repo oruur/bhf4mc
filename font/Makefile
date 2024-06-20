@@ -29,6 +29,7 @@ BetterHanFont.zip: Makefile base-bolder.bdf base-regular.bdf ../util/hfutil ../u
 	zip -r BetterHanFont.zip assets/minecraft/font/include/unifont.json
 	zip -r BetterHanFont.zip assets/minecraft/font/hangul.zip
 	zip -r BetterHanFont.zip assets/minecraft/textures/font/hangul.png
+	zip -r BetterHanFont.zip pack.mcmeta
 
 BolderHanFont.zip: Makefile base-bolder.bdf ../util/hfutil ../util/hfutil.py
 	mkdir -p assets/minecraft/font/include
@@ -38,6 +39,7 @@ BolderHanFont.zip: Makefile base-bolder.bdf ../util/hfutil ../util/hfutil.py
 	zip -r assets/minecraft/font/hangul.zip hangul.hex
 	zip -r BolderHanFont.zip assets/minecraft/font/include/unifont.json
 	zip -r BolderHanFont.zip assets/minecraft/font/hangul.zip
+	zip -r BolderHanFont.zip pack.mcmeta
 
 clean:
 	rm -fr assets
