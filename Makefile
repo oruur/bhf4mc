@@ -1,8 +1,9 @@
 all:
 	cd font && make all
-	cp font/BetterHanFont.zip ./
-	cp font/BolderHanFont.zip ./
+	cd images && make all
+	cp font/BetterHangulFont.zip ./
 
 clean:
 	rm -f *.zip
 	cd font && make clean
+	cd images && make clean

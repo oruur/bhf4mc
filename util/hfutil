@@ -22,6 +22,8 @@ parser.add_argument('-x', dest='XSHIFT', type=int, default=0,
         help='move all glyphs XSHIFT pixels to right (+) or left (-)')
 parser.add_argument('-y', dest='YSHIFT', type=int, default=0,
         help='move all glyphs YSHIFT pixels to top (+) or bottom (-)')
+parser.add_argument('-l', dest='LINESPACE', type=int, default=0,
+        help='space between lines on generated image')
 args = parser.parse_args()
 
 
@@ -72,7 +74,7 @@ elif args.CHARS == 'full':
 
 elif os.path.isfile(args.CHARS):
     with open(args.CHARS) as f:
-        glyphs.export(args.OUTPUT, f.readlines(), 4)
+        glyphs.export(args.OUTPUT, f.readlines(), args.LINESPACE)
 
 if args.JSON:
     glyphs.json(args.JSON, args.OUTPUT, text)
