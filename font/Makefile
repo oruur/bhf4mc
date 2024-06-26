@@ -1,46 +1,27 @@
 PATH=../util:/usr/bin
 
-all: images BetterHanFont.zip BolderHanFont.zip
+all: base-bolder.hex base-regular.hex BetterHangulFont.zip
 
-hex: Makefile base-bolder.bdf base-regular.bdf ../util/hfutil ../util/hfutil.py
+base-bolder.hex: base-bolder.bdf Makefile ../util/hfutil ../util/hfutil.py
+	rm -f base-bolder.bdf.bak
 	hfutil base-bolder.bdf base-bolder.hex
+
+base-regular.hex: base-regular.bdf Makefile ../util/hfutil ../util/hfutil.py
+	rm -f base-regular.bdf.bak
 	hfutil base-regular.bdf base-regular.hex
 
-images: Makefile base-bolder.bdf base-regular.bdf ../util/hfutil ../util/hfutil.py
-	hfutil -y-1 -c basegbv base-bolder.bdf ../images/base-bolder.png
-	hfutil -y 1 -c basegbv base-regular.bdf ../images/base-regular.png
-	hfutil -y-1 -c han1764 base-bolder.bdf ../images/han1764-bolder.png
-	hfutil -y 1 -c han1764 base-regular.bdf ../images/han1764-regular.png
-	hfutil -y-1 -c han2350 base-bolder.bdf ../images/han2350-bolder.png
-	hfutil -y 1 -c han2350 base-regular.bdf ../images/han2350-regular.png
-	hfutil -y-1 -c example.txt base-bolder.bdf ../images/example-bolder.png
-	hfutil -y 1 -c example.txt base-regular.bdf ../images/example-regular.png
-
-BetterHanFont.zip: Makefile base-bolder.bdf base-regular.bdf ../util/hfutil ../util/hfutil.py
+BetterHangulFont.zip: Makefile pack.mcmeta pack.txt base-bolder.hex ../util/hfutil ../util/hfutil.py
 	mkdir -p assets/minecraft/font/include
-	mkdir -p assets/minecraft/textures/font
-	rm -f hangul.hex hangul.png assets/minecraft/font/hangul.zip
-	hfutil -x-1 -c han11250 base-bolder.bdf hangul.png -j default.json
-	hfutil -c han11250 base-regular.bdf hangul.hex -j unifont.json
-	cp *.json assets/minecraft/font/include/
-	cp hangul.png assets/minecraft/textures/font/
-	zip -r assets/minecraft/font/hangul.zip hangul.hex
-	zip -r BetterHanFont.zip assets/minecraft/font/include/default.json
-	zip -r BetterHanFont.zip assets/minecraft/font/include/unifont.json
-	zip -r BetterHanFont.zip assets/minecraft/font/hangul.zip
-	zip -r BetterHanFont.zip assets/minecraft/textures/font/hangul.png
-	zip -r BetterHanFont.zip pack.mcmeta
-
-BolderHanFont.zip: Makefile base-bolder.bdf ../util/hfutil ../util/hfutil.py
-	mkdir -p assets/minecraft/font/include
-	rm -f hangul.hex hangul.png assets/minecraft/font/hangul.zip
-	hfutil -c full base-bolder.bdf hangul.hex -j unifont.json
+	rm -f pack.png hangul.png hangul.hex assets/minecraft/font/hangul.zip
+	hfutil -y-1 -c pack.txt base-bolder.hex pack.png
+	hfutil -c full base-bolder.hex hangul.hex -j unifont.json
 	cp unifont.json assets/minecraft/font/include/
 	zip -r assets/minecraft/font/hangul.zip hangul.hex
-	zip -r BolderHanFont.zip assets/minecraft/font/include/unifont.json
-	zip -r BolderHanFont.zip assets/minecraft/font/hangul.zip
-	zip -r BolderHanFont.zip pack.mcmeta
+	zip -r BetterHangulFont.zip assets/minecraft/font/include/unifont.json
+	zip -r BetterHangulFont.zip assets/minecraft/font/hangul.zip
+	zip -r BetterHangulFont.zip pack.mcmeta
+	zip -r BetterHangulFont.zip pack.png
 
 clean:
 	rm -fr assets
-	rm -f *.bak *.hex *.json *.png *.zip
+	rm -f *.bak *.json *.png *.zip
